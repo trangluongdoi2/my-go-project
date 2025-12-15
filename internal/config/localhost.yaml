@@ -1,0 +1,36 @@
+env:
+  mode: debug
+
+server:
+  port: 9512
+  locale: 'en'
+  timezone: UTC
+
+database:
+  host: host.docker.internal
+  port: 5432
+  username: postgres
+  password: postgres
+  db_name: pos-db
+
+rabbitmq:
+  schema: amqp
+  worker: 2
+  host: host.docker.internal
+  port: 5672
+  vhost: /
+  username: guest
+  password: guest
+  ssl: false
+  ctag: diqit-hotel-api-app
+  retry: 3
+  exchanges: ex.direct.delay
+  queue: {}
+  uri: amqp://guest:guest@rabbitmq:5672
+
+redis:
+  # host: host.docker.internal
+  host: localhost
+  port: 6379
+  db: ""
+  password: ""

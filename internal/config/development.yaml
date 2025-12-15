@@ -1,0 +1,38 @@
+env:
+  mode: debug
+
+server:
+  port: 9512
+  # grpc_port: 5511
+  locale: 'en'
+  timezone: UTC
+
+database:
+  # host: localhost
+  host: host.docker.internal
+  port: 5432
+  username: postgres
+  password:
+  db_name: pos-db
+
+rabbitmq:
+  schema: amqp
+  worker: 2
+  # host: host.docker.internal
+  host: localhost
+  port: 5672
+  vhost: /
+  username: guest
+  password: guest
+  ssl: false
+  ctag: my-app
+  retry: 3
+  exchanges: ex.direct.delay
+  queue: {}
+  uri: amqp://guest:guest@rabbitmq:5672
+
+redis:
+  host: host.docker.internal
+  port: 6379
+  password:
+  db: 0

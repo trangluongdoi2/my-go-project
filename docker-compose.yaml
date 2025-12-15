@@ -1,0 +1,88 @@
+services:
+  app:
+    container_name: my-app
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile-localhost
+    volumes:
+      - .:/go/src/github.com/my-app/my-project
+    ports:
+      - "9512:9512"
+    depends_on:
+      # postgres:
+      #   condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_DB_NAME=${DATABASE_DB_NAME}
+
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_CTAG=${RABBITMQ_CTAG}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=${REDIS_DB}
+
+    env_file:
+      - .env
+
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: go-backend-postgres
+  #   environment:
+  #     POSTGRES_DB: ${DATABASE_DB_NAME}
+  #     DATABASE_USERNAME: ${DATABASE_USERNAME}
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  #   ports:
+  #     - 5433:5432
+  #   volumes:
+  #   # - .:/app
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    hostname: rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: go-backend-redis
+  #   hostname: redis
+  #   ports:
+  #     - "6379:6379"
+  #   command: ["redis-server", "--appendonly", "yes"]
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "PING"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 5
+
+volumes:
+  postgres_data:
+  # redis_data:

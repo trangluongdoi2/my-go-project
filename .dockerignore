@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Build artifacts
+main
+build/
+
+# Dependencies (will be downloaded in container)
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# Test files
+*_test.go
+test/
+tests/
