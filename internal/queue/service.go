@@ -32,6 +32,5 @@ func (s *service) GetQueueOne(queueName string) (*amqp.Delivery, error) {
 	if err != nil {
 		return nil, err
 	}
-	msg.Ack(false)
 	return msg, nil
 }

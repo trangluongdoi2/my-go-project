@@ -53,6 +53,8 @@ func LoadConfig() (*Config, error) {
 		env = "localhost"
 	}
 
+	fmt.Println(env, "[ENV]")
+
 	configPath, err := filepath.Abs("./internal/config")
 	if err != nil {
 		return nil, fmt.Errorf("error getting config path: %v", err)

@@ -11,7 +11,7 @@ database:
   port: 5432
   username: postgres
   password: postgres
-  db_name: pos-db
+  db_name: nail-db
 
 rabbitmq:
   schema: amqp
@@ -26,11 +26,10 @@ rabbitmq:
   retry: 3
   exchanges: ex.direct.delay
   queue: {}
-  uri: amqp://guest:guest@rabbitmq:5672
+  uri: amqp://guest:guest@host.docker.internal:5672
 
 redis:
-  # host: host.docker.internal
-  host: localhost
+  host: host.docker.internal
   port: 6379
-  db: ""
+  db: 0
   password: ""

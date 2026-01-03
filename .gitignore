@@ -48,3 +48,5 @@ dist/
 # Air temporary files
 tmp/
 *.log
+
+CLAUDE.local.md

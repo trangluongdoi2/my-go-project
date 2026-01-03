@@ -14,14 +14,12 @@ type RedisService struct {
 }
 
 func NewRedisConnection(cfg *config.Config) (*redis.Client, error) {
-	fmt.Println(cfg.RedisConfig, "cfg.RedisConfig")
 	config := New(
 		NewHost(cfg.RedisConfig.Host),
 		NewPassword(cfg.RedisConfig.Password),
 		NewPort(cfg.RedisConfig.Port),
 		NewDB(cfg.RedisConfig.DB),
 	)
-	fmt.Println(config, "config..")
 	rdb := redis.NewClient(&redis.Options{
 		Addr:         fmt.Sprintf("%s:%d", config.Host, config.Port),
 		Password:     config.Password,

@@ -8,12 +8,13 @@ server:
   timezone: UTC
 
 database:
-  # host: localhost
-  host: host.docker.internal
+  host: localhost
+  # host: host.docker.internal
   port: 5432
   username: postgres
   password:
-  db_name: pos-db
+  db_name: nail-db
+  network:
 
 rabbitmq:
   schema: amqp
@@ -25,14 +26,15 @@ rabbitmq:
   username: guest
   password: guest
   ssl: false
-  ctag: my-app
+  ctag: nail-project
   retry: 3
   exchanges: ex.direct.delay
   queue: {}
   uri: amqp://guest:guest@rabbitmq:5672
 
 redis:
-  host: host.docker.internal
+  # host: host.docker.internal
+  host: localhost
   port: 6379
   password:
   db: 0

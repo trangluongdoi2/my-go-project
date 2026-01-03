@@ -15,17 +15,17 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(r *gin.Engine) {
-	r.GET("/bookings", h.getAll)
+	r.GET("/bookings", h.getBookings)
 	r.POST("/bookings", h.create)
 }
 
-func (h *Handler) getAll(c *gin.Context) {
-	todos, err := h.service.List()
+func (h *Handler) getBookings(c *gin.Context) {
+	bookings, err := h.service.List()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, todos)
+	c.JSON(http.StatusOK, bookings)
 }
 
 func (h *Handler) create(c *gin.Context) {

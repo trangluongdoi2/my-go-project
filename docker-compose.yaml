@@ -1,18 +1,16 @@
 services:
   app:
-    container_name: my-app
+    container_name: nail-project
     build:
       context: .
       dockerfile: ./build/Dockerfile-localhost
     volumes:
-      - .:/go/src/github.com/my-app/my-project
+      - .:/go/src/github.com/nail-project/my-project
     ports:
       - "9512:9512"
-    depends_on:
-      # postgres:
-      #   condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+    # depends_on:
+    #   rabbitmq:
+    #     condition: service_healthy
     environment:
       - DATABASE_HOST=${DATABASE_HOST}
       - DATABASE_PORT=${DATABASE_PORT}
@@ -36,53 +34,17 @@ services:
     env_file:
       - .env
 
-  # postgres:
-  #   image: postgres:15-alpine
-  #   container_name: go-backend-postgres
-  #   environment:
-  #     POSTGRES_DB: ${DATABASE_DB_NAME}
-  #     DATABASE_USERNAME: ${DATABASE_USERNAME}
-  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  # rabbitmq:
+  #   image: rabbitmq:3-management
   #   ports:
-  #     - 5433:5432
-  #   volumes:
-  #   # - .:/app
-  #     - postgres_data:/var/lib/postgresql/data
-  #   restart: unless-stopped
+  #     - 5672:5672
+  #     - 15672:15672
+  #   hostname: rabbitmq
   #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U postgres"]
+  #     test: ["CMD", "rabbitmq-diagnostics", "ping"]
   #     interval: 10s
   #     timeout: 5s
   #     retries: 5
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - 5672:5672
-      - 15672:15672
-    hostname: rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: go-backend-redis
-  #   hostname: redis
-  #   ports:
-  #     - "6379:6379"
-  #   command: ["redis-server", "--appendonly", "yes"]
-  #   volumes:
-  #     - redis_data:/data
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "PING"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 5
-
 volumes:
   postgres_data:
-  # redis_data:

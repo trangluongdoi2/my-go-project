@@ -16,29 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// func AA() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		fmt.Println("Before ==> AA")
-// 		c.Next()
-// 		fmt.Println("After ==> AA")
-// 	}
-// }
-
-// func BB() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		fmt.Println("Before ==> BB")
-// 		c.Next()
-// 		fmt.Println("After ==> BB")
-// 	}
-// }
-// func CC() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		fmt.Println("Before ==> CC")
-// 		c.Next()
-// 		fmt.Println("After ==> CC")
-// 	}
-// }
-
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -53,8 +30,7 @@ func main() {
 
 	rdb, _ := redis.NewRedisConnection(cfg)
 
-	// limiter := ratelimit.NewRedisLimiter(rdb, 100, time.Minute)
-	limiter := ratelimit.NewRedisLimiter(rdb, 5, time.Minute)
+	limiter := ratelimit.NewRedisLimiter(rdb, config.RATE_LIMITER, time.Minute)
 
 	r := gin.Default()
 
