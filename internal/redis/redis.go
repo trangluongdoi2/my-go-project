@@ -38,8 +38,5 @@ func NewRedisConnection(cfg *config.Config) (*redis.Client, error) {
 	}
 	fmt.Println("Connected to Redis:", pong)
 
-	redisService := RedisService{}
-	redisService.redisClient = rdb
-
 	return rdb, nil
 }

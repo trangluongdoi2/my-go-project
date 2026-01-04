@@ -1,6 +1,8 @@
 package staff
 
 import (
+	"context"
+
 	baserepo "go-backend-project/internal/repository"
 
 	"gorm.io/gorm"
@@ -9,7 +11,7 @@ import (
 type Repository interface {
 	baserepo.BaseRepository[Staff]
 
-	GetStaff(condition interface{}) ([]Staff, error)
+	GetStaff(ctx context.Context, condition map[string]interface{}) ([]Staff, error)
 }
 
 type repository struct {
@@ -17,6 +19,14 @@ type repository struct {
 	db *gorm.DB
 }
 
-func (r *repository) GetStaff(condition interface{}) ([]Staff, error) {
-	return r.FindBy(condition)
+func (r *repository) GetStaff(ctx context.Context, condition map[string]interface{}) ([]Staff, error) {
+	return r.FindBy(ctx, condition)
+}
+
+func NewRepository(db *gorm.DB) Repository {
+	baseRepo := baserepo.NewGormRepository[Staff](db)
+	return &repository{
+		BaseRepository: baseRepo,
+		db:             db,
+	}
 }

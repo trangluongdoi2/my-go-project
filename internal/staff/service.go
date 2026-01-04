@@ -1,7 +1,9 @@
 package staff
 
+import "context"
+
 type Service interface {
-	List() ([]Staff, error)
+	List(ctx context.Context) ([]Staff, error)
 }
 
 type service struct {
@@ -14,6 +16,6 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *service) List() ([]Staff, error) {
-	return s.repo.GetStaff(nil)
+func (s *service) List(ctx context.Context) ([]Staff, error) {
+	return s.repo.GetStaff(ctx, nil)
 }

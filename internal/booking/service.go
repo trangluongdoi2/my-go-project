@@ -1,16 +1,18 @@
 package booking
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
 	"go-backend-project/internal/config"
 	"go-backend-project/internal/rabbitmq"
+	"go-backend-project/pkg"
 )
 
 type Service interface {
-	Create(payload Booking) (*Booking, error)
-	List() ([]Booking, error)
+	Create(ctx context.Context, payload Booking) (*Booking, error)
+	GetBookings(ctx context.Context) ([]Booking, error)
 }
 
 type service struct {
@@ -27,7 +29,7 @@ func NewService(repo Repository, mq *rabbitmq.AmqpQueueService) Service {
 	}
 }
 
-func (s *service) Create(payload Booking) (*Booking, error) {
+func (s *service) Create(ctx context.Context, payload Booking) (*Booking, error) {
 	if err := s.validator.ValidateBooking(&payload); err != nil {
 		return nil, err
 	}
@@ -35,8 +37,9 @@ func (s *service) Create(payload Booking) (*Booking, error) {
 	payload.Status = int16(config.BOOKING_STATUS_PENDING)
 	payload.CreatedAt = time.Now()
 	payload.UpdatedAt = time.Now()
+	payload.Code = pkg.GenerateCode(config.PREFIX_BOOKING)
 
-	if err := s.repo.Create(&payload); err != nil {
+	if err := s.repo.Create(ctx, &payload); err != nil {
 		return nil, err
 	}
 
@@ -48,6 +51,6 @@ func (s *service) Create(payload Booking) (*Booking, error) {
 	return &payload, nil
 }
 
-func (s *service) List() ([]Booking, error) {
-	return s.repo.GetBooking(nil)
+func (s *service) GetBookings(ctx context.Context) ([]Booking, error) {
+	return s.repo.GetBookings(ctx, nil)
 }

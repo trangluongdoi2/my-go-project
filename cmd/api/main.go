@@ -11,6 +11,8 @@ import (
 	"go-backend-project/internal/rabbitmq"
 	"go-backend-project/internal/ratelimit"
 	"go-backend-project/internal/redis"
+	serviceoffering "go-backend-project/internal/service-offering"
+	"go-backend-project/internal/staff"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -40,6 +42,16 @@ func main() {
 	bookingService := booking.NewService(bookingRepo, mq)
 	bookingHandler := booking.NewHandler(bookingService)
 	bookingHandler.RegisterRoutes(r)
+
+	staffRepo := staff.NewRepository(databaseService.DB)
+	staffService := staff.NewService(staffRepo)
+	staffHandler := staff.NewHandler(staffService)
+	staffHandler.RegisterRoutes(r)
+
+	serviceOfferingRepo := serviceoffering.NewRepository(databaseService.DB)
+	serviceOfferingService := serviceoffering.NewService(serviceOfferingRepo)
+	serviceOfferingHandler := serviceoffering.NewHandler(serviceOfferingService)
+	serviceOfferingHandler.RegisterRoutes(r)
 
 	healthHandler := health.NewHandler(databaseService.DB, mq)
 

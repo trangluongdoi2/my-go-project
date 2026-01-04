@@ -1,6 +1,10 @@
 package staff
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Handler struct {
 	service Service
@@ -11,6 +15,14 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(r *gin.Engine) {
-	r.GET("/staffs")
-	r.POST("/staffs")
+	r.GET("/staffs", h.list)
+}
+
+func (h *Handler) list(c *gin.Context) {
+	staffs, err := h.service.List(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, staffs)
 }

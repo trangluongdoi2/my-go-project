@@ -20,7 +20,7 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 }
 
 func (h *Handler) getBookings(c *gin.Context) {
-	bookings, err := h.service.List()
+	bookings, err := h.service.GetBookings(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -35,7 +35,7 @@ func (h *Handler) create(c *gin.Context) {
 		return
 	}
 
-	booking, err := h.service.Create(body)
+	booking, err := h.service.Create(c.Request.Context(), body)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
