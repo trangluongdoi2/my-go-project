@@ -18,6 +18,15 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	r.GET("/staffs", h.list)
 }
 
+// GetStaffs godoc
+// @Summary Get all staffs
+// @Description Get list of all staffs
+// @Tags staffs
+// @Accept json
+// @Produce json
+// @Success 200 {array} Staff
+// @Failure 500 {object} map[string]string
+// @Router /staffs [get]
 func (h *Handler) list(c *gin.Context) {
 	staffs, err := h.service.List(c.Request.Context())
 	if err != nil {

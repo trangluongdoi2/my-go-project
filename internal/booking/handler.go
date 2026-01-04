@@ -19,6 +19,15 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	r.POST("/bookings", h.create)
 }
 
+// GetBookings godoc
+// @Summary Get all bookings
+// @Description Get list of all bookings
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Success 200 {array} Booking
+// @Failure 500 {object} map[string]string
+// @Router /bookings [get]
 func (h *Handler) getBookings(c *gin.Context) {
 	bookings, err := h.service.GetBookings(c.Request.Context())
 	if err != nil {
@@ -28,6 +37,17 @@ func (h *Handler) getBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, bookings)
 }
 
+// CreateBooking godoc
+// @Summary Create a new booking
+// @Description Create a new booking
+// @Tags bookings
+// @Accept json
+// @Produce json
+// @Param body body Booking true "Booking"
+// @Success 201 {object} Booking
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /bookings [post]
 func (h *Handler) create(c *gin.Context) {
 	var body Booking
 	if err := c.BindJSON(&body); err != nil {

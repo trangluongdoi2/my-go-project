@@ -1,4 +1,4 @@
-.PHONY: build start logs
+.PHONY: build start logs swagger
 
 build:
 	docker compose build app
@@ -16,6 +16,9 @@ stop: #down
 	docker volume prune -f
 logs:
 	docker logs -f nail-project
-
 ssh:
 	docker exec -it nail-project bash
+swagger:
+	@echo "=============Generating Swagger documentation============="
+	swag init -g cmd/api/main.go --output docs
+	@echo "=============Swagger documentation generated============="

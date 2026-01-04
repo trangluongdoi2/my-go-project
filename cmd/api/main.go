@@ -16,7 +16,26 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "go-backend-project/docs"
 )
+
+// @title Go Backend Project API
+// @version 1.0
+// @description API Server for Go Backend Project
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:9512
+// @BasePath /
+// @schemes http https
 
 func main() {
 	cfg, err := config.LoadConfig()
@@ -60,6 +79,8 @@ func main() {
 	queueHandler.RegisterRoutes(r)
 
 	r.GET("/health", healthHandler.HealthCheck)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
 	r.Run(addr)

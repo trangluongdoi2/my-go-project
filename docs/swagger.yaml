@@ -1,0 +1,348 @@
+basePath: /
+definitions:
+  booking.Booking:
+    properties:
+      appointment_at:
+        type: string
+      code:
+        type: string
+      created_at:
+        type: string
+      customer:
+        type: object
+      deleted_at:
+        type: string
+      id:
+        type: string
+      notes:
+        type: string
+      payment_status:
+        type: integer
+      price:
+        type: number
+      service_name:
+        type: string
+      staff_id:
+        description: Service []
+        type: string
+      status:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  serviceoffering.ServiceOffering:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+      staffs:
+        items:
+          $ref: '#/definitions/serviceoffering.Staff'
+        type: array
+      status:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  serviceoffering.Staff:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      lastName:
+        type: string
+      phone:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  staff.Staff:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:9512
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: API Server for Go Backend Project
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Go Backend Project API
+  version: "1.0"
+paths:
+  /bookings:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all bookings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/booking.Booking'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all bookings
+      tags:
+      - bookings
+    post:
+      consumes:
+      - application/json
+      description: Create a new booking
+      parameters:
+      - description: Booking
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/booking.Booking'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/booking.Booking'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new booking
+      tags:
+      - bookings
+  /service-offerings:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all service offerings
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/serviceoffering.ServiceOffering'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all service offerings
+      tags:
+      - service-offerings
+    post:
+      consumes:
+      - application/json
+      description: Create a new service offering
+      parameters:
+      - description: Service Offering
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serviceoffering.ServiceOffering'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/serviceoffering.ServiceOffering'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new service offering
+      tags:
+      - service-offerings
+  /service-offerings/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a service offering by ID
+      parameters:
+      - description: Service Offering ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a service offering
+      tags:
+      - service-offerings
+    get:
+      consumes:
+      - application/json
+      description: Get a single service offering by ID
+      parameters:
+      - description: Service Offering ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serviceoffering.ServiceOffering'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get service offering by ID
+      tags:
+      - service-offerings
+    put:
+      consumes:
+      - application/json
+      description: Update an existing service offering
+      parameters:
+      - description: Service Offering ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service Offering
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serviceoffering.ServiceOffering'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serviceoffering.ServiceOffering'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a service offering
+      tags:
+      - service-offerings
+  /staffs:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all staffs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/staff.Staff'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all staffs
+      tags:
+      - staffs
+schemes:
+- http
+- https
+swagger: "2.0"

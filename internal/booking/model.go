@@ -10,7 +10,7 @@ import (
 type Booking struct {
 	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	Code        string         `json:"code"`
-	Customer    datatypes.JSON `json:"customer" gorm:"type:jsonb"`
+	Customer    datatypes.JSON `json:"customer" gorm:"type:jsonb" swaggertype:"object"`
 	ServiceName string         `json:"service_name" gorm:"not null"`
 	// Service []
 	StaffID       *uuid.UUID `json:"staff_id" gorm:"type:uuid"`
