@@ -4,6 +4,9 @@ build:
 	docker compose build app
 start:
 	docker compose up -d
+	$(MAKE) start-rabbit-mq
+start-rabbit-mq:
+	docker start some-rabbit
 restart:
 	docker restart nail-project
 restart-logs:

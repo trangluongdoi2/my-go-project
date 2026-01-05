@@ -26,7 +26,7 @@ temp/
 
 # Build artifacts
 main
-build/
+bin/
 
 # Dependencies (will be downloaded in container)
 vendor/
