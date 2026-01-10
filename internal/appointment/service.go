@@ -1,4 +1,4 @@
-package booking
+package appointment
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, payload Booking) (*Booking, error)
-	GetBookings(ctx context.Context) ([]Booking, error)
+	Create(ctx context.Context, payload Appointment) (*Appointment, error)
+	GetAppointments(ctx context.Context) ([]Appointment, error)
 }
 
 type service struct {
@@ -29,28 +29,28 @@ func NewService(repo Repository, mq *rabbitmq.AmqpQueueService) Service {
 	}
 }
 
-func (s *service) Create(ctx context.Context, payload Booking) (*Booking, error) {
-	if err := s.validator.ValidateBooking(&payload); err != nil {
+func (s *service) Create(ctx context.Context, payload Appointment) (*Appointment, error) {
+	if err := s.validator.ValidateAppointment(&payload); err != nil {
 		return nil, err
 	}
 
-	payload.Status = int16(config.BOOKING_STATUS_PENDING)
+	payload.Status = int16(config.APPOINTMENT_STATUS_PENDING)
 	payload.CreatedAt = time.Now()
 	payload.UpdatedAt = time.Now()
-	payload.Code = pkg.GenerateCode(config.PREFIX_BOOKING)
+	payload.Code = pkg.GenerateCode(config.PREFIX_APPOINTMENT)
 
 	if err := s.repo.Create(ctx, &payload); err != nil {
 		return nil, err
 	}
 
 	if s.mq != nil {
-		bookingData, _ := json.Marshal(payload)
-		s.mq.Send("booking.created", bookingData)
+		AppointmentData, _ := json.Marshal(payload)
+		s.mq.Send("Appointment.created", AppointmentData)
 	}
 
 	return &payload, nil
 }
 
-func (s *service) GetBookings(ctx context.Context) ([]Booking, error) {
-	return s.repo.GetBookings(ctx, nil)
+func (s *service) GetAppointments(ctx context.Context) ([]Appointment, error) {
+	return s.repo.GetAppointments(ctx, nil)
 }

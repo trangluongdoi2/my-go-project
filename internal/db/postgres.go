@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"go-backend-project/internal/booking"
+	"go-backend-project/internal/appointment"
 	"go-backend-project/internal/config"
 	serviceoffering "go-backend-project/internal/service-offering"
 	"go-backend-project/internal/staff"
@@ -57,7 +57,7 @@ func NewPostgresConnection(cfg *config.Config) (*DatabaseService, error) {
 }
 
 var dbModels = []interface{}{
-	&booking.Booking{},
+	&appointment.Appointment{},
 	&staff.Staff{},
 	&serviceoffering.ServiceOffering{},
 	&serviceoffering.StaffService{},

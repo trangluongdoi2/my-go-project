@@ -23,9 +23,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bookings": {
+        "/appointments": {
             "get": {
-                "description": "Get list of all bookings",
+                "description": "Get list of all appointments",
                 "consumes": [
                     "application/json"
                 ],
@@ -33,16 +33,16 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bookings"
+                    "appointments"
                 ],
-                "summary": "Get all bookings",
+                "summary": "Get all appointments",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/booking.Booking"
+                                "$ref": "#/definitions/appointment.Appointment"
                             }
                         }
                     },
@@ -58,7 +58,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Create a new booking",
+                "description": "Create a new appointment",
                 "consumes": [
                     "application/json"
                 ],
@@ -66,17 +66,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "bookings"
+                    "appointments"
                 ],
-                "summary": "Create a new booking",
+                "summary": "Create a new appointment",
                 "parameters": [
                     {
-                        "description": "Booking",
+                        "description": "Appointment",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/booking.Booking"
+                            "$ref": "#/definitions/appointment.Appointment"
                         }
                     }
                 ],
@@ -84,7 +84,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/booking.Booking"
+                            "$ref": "#/definitions/appointment.Appointment"
                         }
                     },
                     "400": {
@@ -364,7 +364,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "booking.Booking": {
+        "appointment.Appointment": {
             "type": "object",
             "properties": {
                 "appointment_at": {

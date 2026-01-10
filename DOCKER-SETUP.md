@@ -140,8 +140,8 @@ File `scripts/init.sql`:
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create bookings table
-CREATE TABLE IF NOT EXISTS bookings (
+-- Create appointments table
+CREATE TABLE IF NOT EXISTS appointments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer JSONB,
     service_name VARCHAR(255) NOT NULL,
@@ -168,10 +168,10 @@ CREATE TABLE IF NOT EXISTS staff (
 );
 
 -- Create indexes
-CREATE INDEX idx_bookings_staff_id ON bookings(staff_id);
-CREATE INDEX idx_bookings_appointment_at ON bookings(appointment_at);
-CREATE INDEX idx_bookings_status ON bookings(status);
-CREATE INDEX idx_bookings_deleted_at ON bookings(deleted_at);
+CREATE INDEX idx_appointments_staff_id ON appointments(staff_id);
+CREATE INDEX idx_appointments_appointment_at ON appointments(appointment_at);
+CREATE INDEX idx_appointments_status ON appointments(status);
+CREATE INDEX idx_appointments_deleted_at ON appointments(deleted_at);
 
 -- Insert sample data
 INSERT INTO staff (name, phone, email, position) VALUES
@@ -438,7 +438,7 @@ psql -h localhost -p 5432 -U postgres -d nail-db
 redis-cli -h localhost -p 6379
 
 # API
-curl http://localhost:9512/bookings
+curl http://localhost:9512/appointments
 ```
 
 ---
@@ -459,7 +459,7 @@ docker-compose up -d
 docker-compose ps
 
 # 4. Test API
-curl http://localhost:9512/bookings
+curl http://localhost:9512/appointments
 ```
 
 ### 10.2. Daily Development

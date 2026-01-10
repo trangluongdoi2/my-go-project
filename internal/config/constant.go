@@ -1,16 +1,16 @@
 package config
 
-type BookingStatus int16
+type AppointmentStatus int16
 
 const (
 	RATE_LIMITER = 100
 
-	PREFIX_BOOKING = "BKG"
-	PREFIX_STAFF   = "SAF"
-	PREFIX_SERVICE = "SEV"
+	PREFIX_APPOINTMENT = "APT"
+	PREFIX_STAFF       = "SAF"
+	PREFIX_SERVICE     = "SEV"
 
-	BOOKING_STATUS_PENDING   BookingStatus = 1
-	BOOKING_STATUS_CONFIRMED BookingStatus = 2
-	BOOKING_STATUS_COMPLETED BookingStatus = 3
-	BOOKING_STATUS_CANCELLED BookingStatus = 4
+	APPOINTMENT_STATUS_PENDING   AppointmentStatus = 1
+	APPOINTMENT_STATUS_CONFIRMED AppointmentStatus = 2
+	APPOINTMENT_STATUS_COMPLETED AppointmentStatus = 3
+	APPOINTMENT_STATUS_CANCELLED AppointmentStatus = 4
 )

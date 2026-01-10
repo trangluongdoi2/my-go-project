@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-backend-project/internal/booking"
+	"go-backend-project/internal/appointment"
 	"go-backend-project/internal/config"
 	"go-backend-project/internal/db"
 	"go-backend-project/internal/health"
@@ -57,10 +57,10 @@ func main() {
 
 	r.Use(middleware.RateLimit(limiter))
 
-	bookingRepo := booking.NewRepository(databaseService.DB)
-	bookingService := booking.NewService(bookingRepo, mq)
-	bookingHandler := booking.NewHandler(bookingService)
-	bookingHandler.RegisterRoutes(r)
+	appointmentRepo := appointment.NewRepository(databaseService.DB)
+	appointmentService := appointment.NewService(appointmentRepo, mq)
+	appointmentHandler := appointment.NewHandler(appointmentService)
+	appointmentHandler.RegisterRoutes(r)
 
 	staffRepo := staff.NewRepository(databaseService.DB)
 	staffService := staff.NewService(staffRepo)

@@ -1,8 +1,8 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create bookings table
-CREATE TABLE IF NOT EXISTS bookings (
+-- Create appointments table
+CREATE TABLE IF NOT EXISTS appointments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer JSONB,
     service_name VARCHAR(255) NOT NULL,
@@ -29,10 +29,10 @@ CREATE TABLE IF NOT EXISTS staff (
 );
 
 -- Create indexes
-CREATE INDEX IF NOT EXISTS idx_bookings_staff_id ON bookings(staff_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_appointment_at ON bookings(appointment_at);
-CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
-CREATE INDEX IF NOT EXISTS idx_bookings_deleted_at ON bookings(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_appointments_staff_id ON appointments(staff_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_appointment_at ON appointments(appointment_at);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_deleted_at ON appointments(deleted_at);
 
 -- Insert sample data
 INSERT INTO staff (name, phone, email, position) VALUES

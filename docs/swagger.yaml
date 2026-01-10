@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  booking.Booking:
+  appointment.Appointment:
     properties:
       appointment_at:
         type: string
@@ -118,11 +118,11 @@ info:
   title: Go Backend Project API
   version: "1.0"
 paths:
-  /bookings:
+  /appointments:
     get:
       consumes:
       - application/json
-      description: Get list of all bookings
+      description: Get list of all appointments
       produces:
       - application/json
       responses:
@@ -130,7 +130,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/booking.Booking'
+              $ref: '#/definitions/appointment.Appointment'
             type: array
         "500":
           description: Internal Server Error
@@ -138,27 +138,27 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get all bookings
+      summary: Get all appointments
       tags:
-      - bookings
+      - appointments
     post:
       consumes:
       - application/json
-      description: Create a new booking
+      description: Create a new appointment
       parameters:
-      - description: Booking
+      - description: Appointment
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/booking.Booking'
+          $ref: '#/definitions/appointment.Appointment'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/booking.Booking'
+            $ref: '#/definitions/appointment.Appointment'
         "400":
           description: Bad Request
           schema:
@@ -171,9 +171,9 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Create a new booking
+      summary: Create a new appointment
       tags:
-      - bookings
+      - appointments
   /service-offerings:
     get:
       consumes:
