@@ -36,6 +36,13 @@ func AuthMiddleware(jwtService auth.JWTService) gin.HandlerFunc {
 			return
 		}
 
+		if claims.TokenType != auth.AccessToken {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid token type. Access token required",
+			})
+			return
+		}
+
 		c.Set("user_id", claims.UserID)
 		c.Set("user_email", claims.Email)
 		c.Set("user_role", claims.Role)

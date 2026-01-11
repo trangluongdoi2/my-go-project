@@ -59,7 +59,11 @@ func main() {
 
 	r.Use(middleware.RateLimit(limiter))
 
-	jwtService := auth.NewJWTService(cfg.JWTConfig.Secret, cfg.JWTConfig.ExpirationHours)
+	jwtService := auth.NewJWTService(
+		cfg.JWTConfig.Secret,
+		cfg.JWTConfig.AccessTokenExpirationMin,
+		cfg.JWTConfig.RefreshTokenExpirationDay,
+	)
 
 	userRepo := user.NewRepository(databaseService.DB)
 	authService := auth.NewService(userRepo, jwtService)

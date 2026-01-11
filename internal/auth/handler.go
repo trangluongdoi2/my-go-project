@@ -19,12 +19,13 @@ func (h *Handler) RegisterRoutes(r *gin.Engine) {
 	{
 		auth.POST("/login", h.login)
 		auth.POST("/register", h.register)
+		auth.POST("/refresh", h.refresh)
 	}
 }
 
 // Login godoc
 // @Summary User login
-// @Description Authenticate user and return JWT token
+// @Description Authenticate user and return access token and refresh token
 // @Tags auth
 // @Accept json
 // @Produce json
@@ -51,7 +52,7 @@ func (h *Handler) login(c *gin.Context) {
 
 // Register godoc
 // @Summary User registration
-// @Description Register a new user and return JWT token
+// @Description Register a new user and return access token and refresh token
 // @Tags auth
 // @Accept json
 // @Produce json
@@ -74,4 +75,31 @@ func (h *Handler) register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, response)
+}
+
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Use refresh token to get a new access token and refresh token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param body body RefreshTokenRequest true "Refresh token"
+// @Success 200 {object} AuthResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/refresh [post]
+func (h *Handler) refresh(c *gin.Context) {
+	var req RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := h.service.RefreshToken(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }

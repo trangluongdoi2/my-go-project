@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"go-backend-project/internal/user"
 
@@ -23,14 +22,21 @@ type RegisterRequest struct {
 	Phone     string `json:"phone"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
 type AuthResponse struct {
-	Token string     `json:"token"`
-	User  *user.User `json:"user"`
+	AccessToken  string     `json:"access_token"`
+	RefreshToken string     `json:"refresh_token"`
+	ExpiresIn    int64      `json:"expires_in"`
+	User         *user.User `json:"user"`
 }
 
 type Service interface {
 	Login(ctx context.Context, req LoginRequest) (*AuthResponse, error)
 	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error)
+	RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error)
 }
 
 type service struct {
@@ -59,14 +65,16 @@ func (s *service) Login(ctx context.Context, req LoginRequest) (*AuthResponse, e
 		return nil, errors.New("user account is deactivated")
 	}
 
-	token, err := s.jwtService.GenerateToken(existingUser.ID, existingUser.Email, existingUser.Role)
+	tokenPair, err := s.jwtService.GenerateTokenPair(existingUser.ID, existingUser.Email, existingUser.Role)
 	if err != nil {
-		return nil, errors.New("failed to generate token")
+		return nil, errors.New("failed to generate tokens")
 	}
 
 	return &AuthResponse{
-		Token: token,
-		User:  existingUser,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+		User:         existingUser,
 	}, nil
 }
 
@@ -75,8 +83,6 @@ func (s *service) Register(ctx context.Context, req RegisterRequest) (*AuthRespo
 	if existing != nil {
 		return nil, errors.New("email already exists")
 	}
-
-	fmt.Println(bcrypt.DefaultCost, "bcrypt.DefaultCost..")
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -97,13 +103,39 @@ func (s *service) Register(ctx context.Context, req RegisterRequest) (*AuthRespo
 		return nil, errors.New("failed to create user")
 	}
 
-	token, err := s.jwtService.GenerateToken(newUser.ID, newUser.Email, newUser.Role)
+	tokenPair, err := s.jwtService.GenerateTokenPair(newUser.ID, newUser.Email, newUser.Role)
 	if err != nil {
-		return nil, errors.New("failed to generate token")
+		return nil, errors.New("failed to generate tokens")
 	}
 
 	return &AuthResponse{
-		Token: token,
-		User:  newUser,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+		User:         newUser,
+	}, nil
+}
+
+func (s *service) RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error) {
+	tokenPair, err := s.jwtService.RefreshAccessToken(req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	claims, _ := s.jwtService.ValidateToken(tokenPair.AccessToken)
+	existingUser, err := s.userRepo.GetUserByEmail(ctx, claims.Email)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if !existingUser.IsActive {
+		return nil, errors.New("user account is deactivated")
+	}
+
+	return &AuthResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+		User:         existingUser,
 	}, nil
 }
