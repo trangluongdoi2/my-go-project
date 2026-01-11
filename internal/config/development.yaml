@@ -38,3 +38,9 @@ redis:
   port: 6379
   password:
   db: 0
+
+jwt:
+  secret: your-secret-key
+  access_token_expiration_min: 60
+  refresh_token_expiration_day: 7
+  expiration_hours: 1440

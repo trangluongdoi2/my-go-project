@@ -25,7 +25,7 @@ func (Staff) TableName() string {
 
 type ServiceOffering struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	Code        string    `json:"code" gorm:"unique;not null"`
+	Code        string    `json:"code" gorm:"not null"`
 	Name        string    `json:"name" gorm:"not null"`
 	Description string    `json:"description" gorm:"type:text"`
 	Price       float64   `json:"price" gorm:"type:decimal(10,2);not null"`
@@ -33,7 +33,7 @@ type ServiceOffering struct {
 	IsActive    bool      `json:"is_active" gorm:"default:true"`
 	Status      int16     `json:"status" gorm:"type:smallint;default:1"`
 
-	Staffs []Staff `json:"staffs,omitempty" gorm:"many2many:staff_services;foreignKey:ID;joinForeignKey:ServiceOfferingID;References:ID;joinReferences:StaffID"`
+	Staffs *[]Staff `json:"staffs,omitempty" gorm:"many2many:staff_services;foreignKey:ID;joinForeignKey:ServiceOfferingID;References:ID;joinReferences:StaffID"`
 
 	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`

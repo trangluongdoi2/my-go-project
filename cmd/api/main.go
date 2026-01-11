@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-backend-project/internal/appointment"
+	"go-backend-project/internal/auth"
 	"go-backend-project/internal/config"
 	"go-backend-project/internal/db"
 	"go-backend-project/internal/health"
@@ -13,6 +14,7 @@ import (
 	"go-backend-project/internal/redis"
 	serviceoffering "go-backend-project/internal/service-offering"
 	"go-backend-project/internal/staff"
+	"go-backend-project/internal/user"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -57,6 +59,20 @@ func main() {
 
 	r.Use(middleware.RateLimit(limiter))
 
+	jwtService := auth.NewJWTService(cfg.JWTConfig.Secret, cfg.JWTConfig.ExpirationHours)
+
+	userRepo := user.NewRepository(databaseService.DB)
+	authService := auth.NewService(userRepo, jwtService)
+	authHandler := auth.NewHandler(authService)
+	authHandler.RegisterRoutes(r)
+
+	healthHandler := health.NewHandler(databaseService.DB, mq)
+	r.GET("/health", healthHandler.HealthCheck)
+
+	userService := user.NewService(userRepo)
+	userHandler := user.NewHandler(userService)
+	userHandler.RegisterRoutes(r)
+
 	appointmentRepo := appointment.NewRepository(databaseService.DB)
 	appointmentService := appointment.NewService(appointmentRepo, mq)
 	appointmentHandler := appointment.NewHandler(appointmentService)
@@ -67,18 +83,18 @@ func main() {
 	staffHandler := staff.NewHandler(staffService)
 	staffHandler.RegisterRoutes(r)
 
-	serviceOfferingRepo := serviceoffering.NewRepository(databaseService.DB)
-	serviceOfferingService := serviceoffering.NewService(serviceOfferingRepo)
-	serviceOfferingHandler := serviceoffering.NewHandler(serviceOfferingService)
-	serviceOfferingHandler.RegisterRoutes(r)
+	protected := r.Group("/")
+	protected.Use(middleware.AuthMiddleware(jwtService))
+	{
+		serviceOfferingRepo := serviceoffering.NewRepository(databaseService.DB)
+		serviceOfferingService := serviceoffering.NewService(serviceOfferingRepo)
+		serviceOfferingHandler := serviceoffering.NewHandler(serviceOfferingService)
+		serviceOfferingHandler.RegisterRoutes(protected)
 
-	healthHandler := health.NewHandler(databaseService.DB, mq)
-
-	queueService := queue.NewService(mq)
-	queueHandler := queue.NewHandler(queueService)
-	queueHandler.RegisterRoutes(r)
-
-	r.GET("/health", healthHandler.HealthCheck)
+		queueService := queue.NewService(mq)
+		queueHandler := queue.NewHandler(queueService)
+		queueHandler.RegisterRoutes(protected)
+	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

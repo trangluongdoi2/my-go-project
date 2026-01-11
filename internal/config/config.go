@@ -43,6 +43,12 @@ type Config struct {
 		Password string `mapstructure:"password" yaml:"password"`
 		DB       int    `mapstructure:"db" yaml:"db"`
 	} `mapstructure:"redis" yaml:"redis"`
+	JWTConfig struct {
+		Secret                    string `mapstructure:"secret" yaml:"secret"`
+		AccessTokenExpirationMin  int    `mapstructure:"access_token_expiration_min" yaml:"access_token_expiration_min"`
+		RefreshTokenExpirationDay int    `mapstructure:"refresh_token_expiration_day" yaml:"refresh_token_expiration_day"`
+		ExpirationHours           int    `mapstructure:"expiration_hours" yaml:"expiration_hours"`
+	} `mapstructure:"jwt" yaml:"jwt"`
 }
 
 var config Config
@@ -52,8 +58,6 @@ func LoadConfig() (*Config, error) {
 	if env == "" {
 		env = "localhost"
 	}
-
-	fmt.Println(env, "[ENV]")
 
 	configPath, err := filepath.Abs("./internal/config")
 	if err != nil {

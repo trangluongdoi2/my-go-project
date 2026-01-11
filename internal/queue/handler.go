@@ -19,12 +19,9 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) RegisterRoutes(r *gin.Engine) {
-	queue := r.Group("/queue")
-	{
-		queue.GET("/execute", h.GetQueueOne)
-		queue.POST("/send", h.PostQueue)
-	}
+func (h *Handler) RegisterRoutes(r gin.IRouter) {
+	r.GET("/queue/execute", h.GetQueueOne)
+	r.POST("/queue/send", h.PostQueue)
 }
 
 func (h *Handler) PostQueue(c *gin.Context) {

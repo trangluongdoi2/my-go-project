@@ -2,10 +2,7 @@ package db
 
 import (
 	"fmt"
-	"go-backend-project/internal/appointment"
 	"go-backend-project/internal/config"
-	serviceoffering "go-backend-project/internal/service-offering"
-	"go-backend-project/internal/staff"
 	"log"
 	"strings"
 	"time"
@@ -57,10 +54,11 @@ func NewPostgresConnection(cfg *config.Config) (*DatabaseService, error) {
 }
 
 var dbModels = []interface{}{
-	&appointment.Appointment{},
-	&staff.Staff{},
-	&serviceoffering.ServiceOffering{},
-	&serviceoffering.StaffService{},
+	// &appointment.Appointment{},
+	// &staff.Staff{},
+	// &serviceoffering.ServiceOffering{},
+	// &serviceoffering.StaffService{},
+	// &user.User{},
 }
 
 func (d *DatabaseService) SafeAutoMigrate(models ...interface{}) error {

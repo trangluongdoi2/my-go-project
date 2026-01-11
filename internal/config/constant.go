@@ -8,6 +8,7 @@ const (
 	PREFIX_APPOINTMENT = "APT"
 	PREFIX_STAFF       = "SAF"
 	PREFIX_SERVICE     = "SEV"
+	PREFIX_USER        = "USR"
 
 	APPOINTMENT_STATUS_PENDING   AppointmentStatus = 1
 	APPOINTMENT_STATUS_CONFIRMED AppointmentStatus = 2
