@@ -1,7 +1,7 @@
 package staff
 
 import (
-	"net/http"
+	"go-backend-project/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,20 +18,11 @@ func (h *Handler) RegisterRoutes(r gin.IRouter) {
 	r.GET("/staffs", h.list)
 }
 
-// GetStaffs godoc
-// @Summary Get all staffs
-// @Description Get list of all staffs
-// @Tags staffs
-// @Accept json
-// @Produce json
-// @Success 200 {array} Staff
-// @Failure 500 {object} map[string]string
-// @Router /staffs [get]
 func (h *Handler) list(c *gin.Context) {
 	staffs, err := h.service.List(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.InternalServerError(c, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, staffs)
+	utils.OK(c, "Staff list retrieved", staffs)
 }

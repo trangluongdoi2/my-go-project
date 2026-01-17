@@ -22,7 +22,7 @@ rabbitmq:
   username: guest
   password: guest
   ssl: false
-  ctag: diqit-hotel-api-app
+  ctag: my-ctag
   retry: 3
   exchanges: ex.direct.delay
   queue: {}

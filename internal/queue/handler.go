@@ -2,6 +2,7 @@ package queue
 
 import (
 	"encoding/json"
+	"go-backend-project/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,48 +29,48 @@ func (h *Handler) PostQueue(c *gin.Context) {
 	queueName := c.Query("queue")
 	var req QueueMessage
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		utils.BadRequest(c, err.Error())
 		return
 	}
 	out, err := json.Marshal(req)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		utils.InternalServerError(c, err.Error())
 		return
 	}
 
 	status, err := h.service.PostQueue(queueName, out)
 
 	if err != nil {
-		c.JSON(status, gin.H{"error": err.Error()})
+		utils.Error(c, status, err.Error())
 		return
 	}
-	c.String(status, "Send queue successfully!")
+	utils.Success(c, status, "Queue sent successfully", nil)
 }
 
 func (h *Handler) GetQueueOne(c *gin.Context) {
 	queueName := c.Query("queue")
 	if queueName == "" {
-		c.JSON(400, gin.H{"error": "queue parameter is required"})
+		utils.BadRequest(c, "queue parameter is required")
 		return
 	}
 
 	msg, err := h.service.GetQueueOne(queueName)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		utils.InternalServerError(c, err.Error())
 		return
 	}
 
 	if msg == nil {
-		c.JSON(200, gin.H{"message": "Queue is empty"})
+		utils.OK(c, "Queue is empty", nil)
 		return
 	}
 
 	if err := msg.Ack(false); err != nil {
-		c.JSON(500, gin.H{"error": "Failed to acknowledge message: " + err.Error()})
+		utils.InternalServerError(c, "Failed to acknowledge message: "+err.Error())
 		return
 	}
 
-	c.JSON(200, gin.H{
+	utils.OK(c, "Queue message retrieved", gin.H{
 		"message_id": msg.MessageId,
 		"body":       string(msg.Body),
 		"timestamp":  msg.Timestamp,

@@ -2,7 +2,7 @@ package health
 
 import (
 	"go-backend-project/internal/rabbitmq"
-	"net/http"
+	"go-backend-project/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -28,5 +28,5 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 		status["database"] = "down"
 	}
 
-	c.JSON(http.StatusOK, status)
+	utils.OK(c, "Health check completed", status)
 }

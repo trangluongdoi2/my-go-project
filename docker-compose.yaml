@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: ./build/Dockerfile-localhost
     volumes:
-      - .:/go/src/github.com/nail-project/my-project
+      - .:/app
     ports:
       - "9512:9512"
     # depends_on:

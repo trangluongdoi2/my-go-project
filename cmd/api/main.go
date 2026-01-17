@@ -24,21 +24,6 @@ import (
 	_ "go-backend-project/docs"
 )
 
-// @title Go Backend Project API
-// @version 1.0
-// @description API Server for Go Backend Project
-// @termsOfService http://swagger.io/terms/
-
-// @contact.name API Support
-// @contact.email support@example.com
-
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
-
-// @host localhost:9512
-// @BasePath /
-// @schemes http https
-
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -57,6 +42,7 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(middleware.CORSMiddleware())
 	r.Use(middleware.RateLimit(limiter))
 
 	jwtService := auth.NewJWTService(
@@ -68,10 +54,7 @@ func main() {
 	userRepo := user.NewRepository(databaseService.DB)
 	authService := auth.NewService(userRepo, jwtService)
 	authHandler := auth.NewHandler(authService)
-	authHandler.RegisterRoutes(r)
-
-	healthHandler := health.NewHandler(databaseService.DB, mq)
-	r.GET("/health", healthHandler.HealthCheck)
+	authHandler.RegisterPublicRoutes(r)
 
 	userService := user.NewService(userRepo)
 	userHandler := user.NewHandler(userService)
@@ -90,6 +73,8 @@ func main() {
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
+		authHandler.RegisterProtectedRoutes(protected)
+
 		serviceOfferingRepo := serviceoffering.NewRepository(databaseService.DB)
 		serviceOfferingService := serviceoffering.NewService(serviceOfferingRepo)
 		serviceOfferingHandler := serviceoffering.NewHandler(serviceOfferingService)
@@ -101,6 +86,9 @@ func main() {
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	healthHandler := health.NewHandler(databaseService.DB, mq)
+	r.GET("/health", healthHandler.HealthCheck)
 
 	addr := fmt.Sprintf(":%s", cfg.Server.Port)
 	r.Run(addr)

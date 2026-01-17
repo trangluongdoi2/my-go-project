@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"go-backend-project/internal/ratelimit"
+	"go-backend-project/utils"
 	"net/http"
 	"strconv"
 
@@ -14,9 +15,7 @@ func RateLimit(limiter ratelimit.Limiter) gin.HandlerFunc {
 
 		resultRateLimit, err := limiter.Allow(c.Request.Context(), key)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "rate limiter error",
-			})
+			utils.AbortWithError(c, http.StatusInternalServerError, "Rate limiter error")
 			return
 		}
 
@@ -25,9 +24,7 @@ func RateLimit(limiter ratelimit.Limiter) gin.HandlerFunc {
 		c.Header("X-RateLimit-Reset", strconv.FormatInt(resultRateLimit.ResetAt, 10))
 
 		if !resultRateLimit.Allowed {
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"message": "too many requests",
-			})
+			utils.AbortWithError(c, http.StatusTooManyRequests, "Too many requests")
 			return
 		}
 

@@ -6,6 +6,7 @@ import (
 
 	"go-backend-project/internal/user"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -37,6 +38,7 @@ type Service interface {
 	Login(ctx context.Context, req LoginRequest) (*AuthResponse, error)
 	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error)
+	GetMe(ctx context.Context, userID string) (*AuthResponse, error)
 }
 
 type service struct {
@@ -58,6 +60,33 @@ func (s *service) Login(ctx context.Context, req LoginRequest) (*AuthResponse, e
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(existingUser.Password), []byte(req.Password)); err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	if !existingUser.IsActive {
+		return nil, errors.New("user account is deactivated")
+	}
+
+	tokenPair, err := s.jwtService.GenerateTokenPair(existingUser.ID, existingUser.Email, existingUser.Role)
+	if err != nil {
+		return nil, errors.New("failed to generate tokens")
+	}
+
+	return &AuthResponse{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		ExpiresIn:    tokenPair.ExpiresIn,
+		User:         existingUser,
+	}, nil
+}
+
+func (s *service) GetMe(ctx context.Context, userId string) (*AuthResponse, error) {
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, errors.New("invalid userId")
+	}
+	existingUser, err := s.userRepo.GetUserByID(ctx, userUUID)
+	if err != nil {
 		return nil, errors.New("invalid email or password")
 	}
 

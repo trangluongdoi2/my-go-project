@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"go-backend-project/internal/auth"
+	"go-backend-project/utils"
 	"net/http"
 	"strings"
-
-	"go-backend-project/internal/auth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,37 +13,29 @@ func AuthMiddleware(jwtService auth.JWTService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Authorization header is required",
-			})
+			utils.AbortWithError(c, http.StatusUnauthorized, "Authorization header is required")
 			return
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid authorization header format. Use: Bearer <token>",
-			})
+			utils.AbortWithError(c, http.StatusUnauthorized, "Invalid authorization header format. Use: Bearer <token>")
 			return
 		}
 
 		tokenString := parts[1]
 		claims, err := jwtService.ValidateToken(tokenString)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid or expired token",
-			})
+			utils.AbortWithError(c, http.StatusUnauthorized, "Invalid or expired token")
 			return
 		}
 
 		if claims.TokenType != auth.AccessToken {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Invalid token type. Access token required",
-			})
+			utils.AbortWithError(c, http.StatusUnauthorized, "Invalid token type. Access token required")
 			return
 		}
 
-		c.Set("user_id", claims.UserID)
+		c.Set("user_id", claims.UserID.String())
 		c.Set("user_email", claims.Email)
 		c.Set("user_role", claims.Role)
 
@@ -55,9 +47,7 @@ func RoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userRole, exists := c.Get("user_role")
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "User role not found",
-			})
+			utils.AbortWithError(c, http.StatusUnauthorized, "User role not found")
 			return
 		}
 
@@ -69,8 +59,6 @@ func RoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			}
 		}
 
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-			"error": "Access denied. Insufficient permissions",
-		})
+		utils.AbortWithError(c, http.StatusForbidden, "Access denied. Insufficient permissions")
 	}
 }
