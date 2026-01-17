@@ -12,7 +12,7 @@ type Staff struct {
 	FirstName string    `json:"first_name" gorm:"not null"`
 	LastName  string    `json:"last_name" gorm:"not null"`
 	Email     string    `json:"email"`
-	Phone     string    `json:"phone"`
+	Phone     string    `json:"phone" gorm:"index:idx_staffs_phone,unique"`
 	IsActive  bool      `json:"is_active"`
 
 	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`

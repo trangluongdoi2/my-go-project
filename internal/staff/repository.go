@@ -12,6 +12,8 @@ type Repository interface {
 	baserepo.BaseRepository[Staff]
 
 	GetStaff(ctx context.Context, condition map[string]interface{}) ([]Staff, error)
+	GetStaffPaginated(ctx context.Context, condition map[string]interface{}, page, limit int, sortFields, sortOrders []string) (baserepo.Pagination[Staff], error)
+	GetStaffBy(ctx context.Context, condition map[string]interface{}) (*Staff, error)
 }
 
 type repository struct {
@@ -21,6 +23,14 @@ type repository struct {
 
 func (r *repository) GetStaff(ctx context.Context, condition map[string]interface{}) ([]Staff, error) {
 	return r.FindBy(ctx, condition)
+}
+
+func (r *repository) GetStaffPaginated(ctx context.Context, condition map[string]interface{}, page, limit int, sortFields, sortOrders []string) (baserepo.Pagination[Staff], error) {
+	return r.Paginate(ctx, condition, page, limit, sortFields, sortOrders)
+}
+
+func (r *repository) GetStaffBy(ctx context.Context, condition map[string]interface{}) (*Staff, error) {
+	return r.FindOne(ctx, condition)
 }
 
 func NewRepository(db *gorm.DB) Repository {

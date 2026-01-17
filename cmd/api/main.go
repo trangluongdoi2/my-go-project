@@ -65,15 +65,15 @@ func main() {
 	appointmentHandler := appointment.NewHandler(appointmentService)
 	appointmentHandler.RegisterRoutes(r)
 
-	staffRepo := staff.NewRepository(databaseService.DB)
-	staffService := staff.NewService(staffRepo)
-	staffHandler := staff.NewHandler(staffService)
-	staffHandler.RegisterRoutes(r)
-
 	protected := r.Group("/")
 	protected.Use(middleware.AuthMiddleware(jwtService))
 	{
 		authHandler.RegisterProtectedRoutes(protected)
+
+		staffRepo := staff.NewRepository(databaseService.DB)
+		staffService := staff.NewService(staffRepo)
+		staffHandler := staff.NewHandler(staffService)
+		staffHandler.RegisterRoutes(r)
 
 		serviceOfferingRepo := serviceoffering.NewRepository(databaseService.DB)
 		serviceOfferingService := serviceoffering.NewService(serviceOfferingRepo)

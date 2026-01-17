@@ -1,9 +1,21 @@
 package staff
 
-import "context"
+import (
+	"context"
+	"errors"
+	"go-backend-project/internal/config"
+	baserepo "go-backend-project/internal/repository"
+	"go-backend-project/pkg"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Service interface {
-	List(ctx context.Context) ([]Staff, error)
+	List(ctx context.Context, page, limit int) (baserepo.Pagination[Staff], error)
+	Create(ctx context.Context, payload Staff) (*Staff, error)
+	Update(ctx context.Context, id string, payload Staff) (*Staff, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type service struct {
@@ -16,6 +28,82 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *service) List(ctx context.Context) ([]Staff, error) {
-	return s.repo.GetStaff(ctx, nil)
+func (s *service) List(ctx context.Context, page, limit int) (baserepo.Pagination[Staff], error) {
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+
+	sortFields := []string{"created_at"}
+	sortOrders := []string{"desc"}
+
+	return s.repo.GetStaffPaginated(ctx, nil, page, limit, sortFields, sortOrders)
+}
+
+func (s *service) Create(ctx context.Context, payload Staff) (*Staff, error) {
+	existing, _ := s.repo.FindOne(ctx, map[string]interface{}{"phone": payload.Phone})
+
+	if existing != nil {
+		return nil, errors.New("staff already exists")
+	}
+
+	payload.CreatedAt = time.Now()
+	payload.UpdatedAt = time.Now()
+	payload.Code = pkg.GenerateCode(config.PREFIX_STAFF)
+
+	if err := s.repo.Create(ctx, &payload); err != nil {
+		return nil, err
+	}
+
+	return &payload, nil
+}
+
+func (s *service) Update(ctx context.Context, id string, payload Staff) (*Staff, error) {
+	staffID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.New("invalid staff ID")
+	}
+
+	existing, err := s.repo.FindByID(ctx, staffID)
+	if err != nil {
+		return nil, errors.New("staff not found")
+	}
+
+	if payload.FirstName != "" {
+		existing.FirstName = payload.FirstName
+	}
+	if payload.LastName != "" {
+		existing.LastName = payload.LastName
+	}
+	if payload.Email != "" {
+		existing.Email = payload.Email
+	}
+	if payload.Phone != "" {
+		existing.Phone = payload.Phone
+	}
+
+	existing.IsActive = payload.IsActive
+	existing.UpdatedAt = time.Now()
+
+	if err := s.repo.Update(ctx, existing); err != nil {
+		return nil, err
+	}
+
+	return existing, nil
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	staffID, err := uuid.Parse(id)
+	if err != nil {
+		return errors.New("invalid staff ID")
+	}
+
+	_, err = s.repo.FindByID(ctx, staffID)
+	if err != nil {
+		return errors.New("staff not found")
+	}
+
+	return s.repo.Delete(ctx, staffID)
 }
