@@ -3,7 +3,6 @@ package staff
 import (
 	"go-backend-project/utils"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,21 +17,37 @@ func NewHandler(service Service) *Handler {
 
 func (h *Handler) RegisterRoutes(r gin.IRouter) {
 	r.GET("/staffs", h.list)
+	r.GET("/staffs/:id", h.getByID)
 	r.POST("/staffs", h.create)
 	r.PUT("/staffs/:id", h.update)
 	r.DELETE("/staffs/:id", h.delete)
 }
 
 func (h *Handler) list(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	var query ListStaffQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		utils.BadRequest(c, err.Error())
+		return
+	}
 
-	staffs, err := h.service.List(c.Request.Context(), page, limit)
+	staffs, err := h.service.List(c.Request.Context(), query)
 	if err != nil {
 		utils.InternalServerError(c, err.Error())
 		return
 	}
 	utils.OK(c, "Staff list retrieved", staffs)
+}
+
+func (h *Handler) getByID(c *gin.Context) {
+	id := c.Param("id")
+
+	staff, err := h.service.GetByID(c.Request.Context(), id)
+	if err != nil {
+		utils.NotFound(c, err.Error())
+		return
+	}
+
+	utils.OK(c, "Staff retrieved", staff)
 }
 
 func (h *Handler) create(c *gin.Context) {

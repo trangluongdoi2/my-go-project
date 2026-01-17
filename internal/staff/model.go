@@ -1,6 +1,7 @@
 package staff
 
 import (
+	baserepo "go-backend-project/internal/repository"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,4 +19,15 @@ type Staff struct {
 	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt *time.Time `json:"deleted_at"`
+}
+
+type ListStaffQuery struct {
+	baserepo.BaseQuery
+
+	Code      string `form:"code"`
+	FirstName string `form:"first_name"`
+	LastName  string `form:"last_name"`
+	Email     string `form:"email"`
+	Phone     string `form:"phone"`
+	IsActive  *bool  `form:"is_active"`
 }

@@ -12,7 +12,8 @@ import (
 )
 
 type Service interface {
-	List(ctx context.Context, page, limit int) (baserepo.Pagination[Staff], error)
+	List(ctx context.Context, query ListStaffQuery) (baserepo.Pagination[Staff], error)
+	GetByID(ctx context.Context, id string) (*Staff, error)
 	Create(ctx context.Context, payload Staff) (*Staff, error)
 	Update(ctx context.Context, id string, payload Staff) (*Staff, error)
 	Delete(ctx context.Context, id string) error
@@ -28,18 +29,49 @@ func NewService(repo Repository) Service {
 	}
 }
 
-func (s *service) List(ctx context.Context, page, limit int) (baserepo.Pagination[Staff], error) {
-	if page <= 0 {
-		page = 1
+func (s *service) List(ctx context.Context, query ListStaffQuery) (baserepo.Pagination[Staff], error) {
+	conditions := make(map[string]any)
+	if query.Code != "" {
+		conditions["code"] = query.Code
 	}
-	if limit <= 0 {
-		limit = 10
+	if query.FirstName != "" {
+		conditions["first_name"] = query.FirstName
+	}
+	if query.LastName != "" {
+		conditions["last_name"] = query.LastName
+	}
+	if query.Email != "" {
+		conditions["email"] = query.Email
+	}
+	if query.Phone != "" {
+		conditions["phone"] = query.Phone
+	}
+	if query.IsActive != nil {
+		conditions["is_active"] = *query.IsActive
 	}
 
-	sortFields := []string{"created_at"}
-	sortOrders := []string{"desc"}
+	return s.repo.GetStaffPaginated(
+		ctx,
+		conditions,
+		query.GetPage(),
+		query.GetLimit(),
+		query.GetSortFields(),
+		query.GetSortOrders(),
+	)
+}
 
-	return s.repo.GetStaffPaginated(ctx, nil, page, limit, sortFields, sortOrders)
+func (s *service) GetByID(ctx context.Context, id string) (*Staff, error) {
+	staffID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.New("invalid staff ID")
+	}
+
+	staff, err := s.repo.FindByID(ctx, staffID)
+	if err != nil {
+		return nil, errors.New("staff not found")
+	}
+
+	return staff, nil
 }
 
 func (s *service) Create(ctx context.Context, payload Staff) (*Staff, error) {
