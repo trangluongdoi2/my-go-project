@@ -20,6 +20,7 @@ func (h *Handler) RegisterPublicRoutes(r *gin.Engine) {
 		auth.POST("/login", h.login)
 		auth.POST("/register", h.register)
 		auth.POST("/refresh", h.refresh)
+		auth.POST("/logout", h.logout)
 	}
 }
 
@@ -88,4 +89,20 @@ func (h *Handler) getMe(c *gin.Context) {
 	}
 
 	utils.OK(c, "User retrieved", response)
+}
+
+func (h *Handler) logout(c *gin.Context) {
+	var req RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, err.Error())
+		return
+	}
+
+	err := h.service.Logout(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		utils.Unauthorized(c, err.Error())
+		return
+	}
+
+	utils.OK(c, "Logout successfully!", nil)
 }
