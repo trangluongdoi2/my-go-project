@@ -20,13 +20,22 @@ type Claims struct {
 	Email     string    `json:"email"`
 	Role      string    `json:"role"`
 	TokenType TokenType `json:"token_type"`
+	JTI       *string   `json:"jti"`
 	jwt.RegisteredClaims
 }
 
 type TokenPair struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
+	AccessToken      string    `json:"access_token"`
+	RefreshToken     string    `json:"refresh_token"`
+	ExpiresIn        int64     `json:"expires_in"`
+	RefreshJTI       string    `json:"refresh_jti"`
+	RefreshExpiresAt time.Time `json:"refresh_expires_at"`
+}
+
+type RefreshTokenResult struct {
+	Token     string
+	JTI       string
+	ExpiresAt time.Time
 }
 
 type JWTService interface {
@@ -45,11 +54,12 @@ type jwtService struct {
 
 func NewJWTService(secret string, accessTokenExpirationMin, refreshTokenExpirationDay int) JWTService {
 	if accessTokenExpirationMin <= 0 {
-		accessTokenExpirationMin = 15 // 15 minutes default
+		accessTokenExpirationMin = 15
 	}
 	if refreshTokenExpirationDay <= 0 {
-		refreshTokenExpirationDay = 7 // 7 days default
+		refreshTokenExpirationDay = 7
 	}
+
 	return &jwtService{
 		secretKey:                 []byte(secret),
 		accessTokenExpirationMin:  accessTokenExpirationMin,
@@ -75,20 +85,41 @@ func (s *jwtService) GenerateAccessToken(userID uuid.UUID, email, role string) (
 }
 
 func (s *jwtService) GenerateRefreshToken(userID uuid.UUID, email, role string) (string, error) {
+	result, err := s.generateRefreshTokenWithDetails(userID, email, role)
+	if err != nil {
+		return "", err
+	}
+	return result.Token, nil
+}
+
+func (s *jwtService) generateRefreshTokenWithDetails(userID uuid.UUID, email, role string) (*RefreshTokenResult, error) {
+	jti := uuid.NewString()
+	expiresAt := time.Now().Add(time.Hour * 24 * time.Duration(s.refreshTokenExpirationDay))
+
 	claims := &Claims{
 		UserID:    userID,
 		Email:     email,
 		Role:      role,
 		TokenType: RefreshToken,
+		JTI:       &jti,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(s.refreshTokenExpirationDay))),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(s.secretKey)
+	signedToken, err := token.SignedString(s.secretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RefreshTokenResult{
+		Token:     signedToken,
+		JTI:       jti,
+		ExpiresAt: expiresAt,
+	}, nil
 }
 
 func (s *jwtService) GenerateTokenPair(userID uuid.UUID, email, role string) (*TokenPair, error) {
@@ -97,15 +128,17 @@ func (s *jwtService) GenerateTokenPair(userID uuid.UUID, email, role string) (*T
 		return nil, err
 	}
 
-	refreshToken, err := s.GenerateRefreshToken(userID, email, role)
+	refreshResult, err := s.generateRefreshTokenWithDetails(userID, email, role)
 	if err != nil {
 		return nil, err
 	}
 
 	return &TokenPair{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		ExpiresIn:    int64(s.accessTokenExpirationMin * 60),
+		AccessToken:      accessToken,
+		RefreshToken:     refreshResult.Token,
+		ExpiresIn:        int64(s.accessTokenExpirationMin * 60),
+		RefreshJTI:       refreshResult.JTI,
+		RefreshExpiresAt: refreshResult.ExpiresAt,
 	}, nil
 }
 

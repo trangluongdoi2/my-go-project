@@ -3,7 +3,10 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
+	"go-backend-project/internal/redis"
 	"go-backend-project/internal/user"
 
 	"github.com/google/uuid"
@@ -39,18 +42,36 @@ type Service interface {
 	Register(ctx context.Context, req RegisterRequest) (*AuthResponse, error)
 	RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error)
 	GetMe(ctx context.Context, userID string) (*AuthResponse, error)
+	Logout(ctx context.Context, refreshToken string) error
 }
 
 type service struct {
-	userRepo   user.Repository
-	jwtService JWTService
+	userRepo     user.Repository
+	jwtService   JWTService
+	redisService *redis.RedisService
 }
 
-func NewService(userRepo user.Repository, jwtService JWTService) Service {
+func NewService(userRepo user.Repository, jwtService JWTService, redisService *redis.RedisService) Service {
 	return &service{
-		userRepo:   userRepo,
-		jwtService: jwtService,
+		userRepo:     userRepo,
+		jwtService:   jwtService,
+		redisService: redisService,
 	}
+}
+
+func (s *service) setRefreshToken(ctx context.Context, userID, tokenID string, expiresIn time.Duration) error {
+	key := fmt.Sprintf("refresh:%s", tokenID)
+	return s.redisService.RedisClient.Set(ctx, key, userID, expiresIn).Err()
+}
+
+func (s *service) deleteRefreshToken(ctx context.Context, tokenID string) error {
+	key := fmt.Sprintf("refresh:%s", tokenID)
+	return s.redisService.RedisClient.Del(ctx, key).Err()
+}
+
+func (s *service) getRefreshTokenCache(ctx context.Context, tokenID string) (string, error) {
+	key := fmt.Sprintf("refresh:%s", tokenID)
+	return s.redisService.RedisClient.Get(ctx, key).Result()
 }
 
 func (s *service) Login(ctx context.Context, req LoginRequest) (*AuthResponse, error) {
@@ -72,6 +93,10 @@ func (s *service) Login(ctx context.Context, req LoginRequest) (*AuthResponse, e
 		return nil, errors.New("failed to generate tokens")
 	}
 
+	if err := s.setRefreshToken(ctx, existingUser.ID.String(), tokenPair.RefreshJTI, time.Until(tokenPair.RefreshExpiresAt)); err != nil {
+		return nil, errors.New("failed to store session")
+	}
+
 	return &AuthResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
@@ -85,25 +110,18 @@ func (s *service) GetMe(ctx context.Context, userId string) (*AuthResponse, erro
 	if err != nil {
 		return nil, errors.New("invalid userId")
 	}
+
 	existingUser, err := s.userRepo.GetUserByID(ctx, userUUID)
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("user not found")
 	}
 
 	if !existingUser.IsActive {
 		return nil, errors.New("user account is deactivated")
 	}
 
-	tokenPair, err := s.jwtService.GenerateTokenPair(existingUser.ID, existingUser.Email, existingUser.Role)
-	if err != nil {
-		return nil, errors.New("failed to generate tokens")
-	}
-
 	return &AuthResponse{
-		AccessToken:  tokenPair.AccessToken,
-		RefreshToken: tokenPair.RefreshToken,
-		ExpiresIn:    tokenPair.ExpiresIn,
-		User:         existingUser,
+		User: existingUser,
 	}, nil
 }
 
@@ -137,6 +155,10 @@ func (s *service) Register(ctx context.Context, req RegisterRequest) (*AuthRespo
 		return nil, errors.New("failed to generate tokens")
 	}
 
+	if err := s.setRefreshToken(ctx, newUser.ID.String(), tokenPair.RefreshJTI, time.Until(tokenPair.RefreshExpiresAt)); err != nil {
+		return nil, errors.New("failed to store session")
+	}
+
 	return &AuthResponse{
 		AccessToken:  tokenPair.AccessToken,
 		RefreshToken: tokenPair.RefreshToken,
@@ -145,26 +167,72 @@ func (s *service) Register(ctx context.Context, req RegisterRequest) (*AuthRespo
 	}, nil
 }
 
-func (s *service) RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error) {
-	tokenPair, err := s.jwtService.RefreshAccessToken(req.RefreshToken)
+func (s *service) Logout(ctx context.Context, refreshToken string) error {
+	claims, err := s.jwtService.ValidateToken(refreshToken)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	claims, _ := s.jwtService.ValidateToken(tokenPair.AccessToken)
-	existingUser, err := s.userRepo.GetUserByEmail(ctx, claims.Email)
+	if claims.JTI == nil {
+		return errors.New("invalid refresh token: missing jti")
+	}
+
+	key := fmt.Sprintf("refresh:%s", *claims.JTI)
+	return s.redisService.RedisClient.Del(ctx, key).Err()
+}
+
+func (s *service) RefreshToken(ctx context.Context, req RefreshTokenRequest) (*AuthResponse, error) {
+	claims, err := s.jwtService.ValidateToken(req.RefreshToken)
+	if err != nil {
+		return nil, errors.New("invalid refresh token")
+	}
+
+	if claims.TokenType != RefreshToken {
+		return nil, errors.New("invalid token type")
+	}
+
+	if claims.JTI == nil {
+		return nil, errors.New("invalid refresh token: missing jti")
+	}
+
+	userID, err := s.getRefreshTokenCache(ctx, *claims.JTI)
+	if err != nil {
+		return nil, errors.New("refresh token revoked")
+	}
+
+	if userID != claims.UserID.String() {
+		return nil, errors.New("token user mismatch")
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	user, err := s.userRepo.GetUserByID(ctx, userUUID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
 
-	if !existingUser.IsActive {
+	if !user.IsActive {
 		return nil, errors.New("user account is deactivated")
 	}
 
+	newPair, err := s.jwtService.GenerateTokenPair(user.ID, user.Email, user.Role)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.setRefreshToken(ctx, user.ID.String(), newPair.RefreshJTI, time.Until(newPair.RefreshExpiresAt)); err != nil {
+		return nil, errors.New("failed to store session")
+	}
+
+	_ = s.deleteRefreshToken(ctx, *claims.JTI)
+
 	return &AuthResponse{
-		AccessToken:  tokenPair.AccessToken,
-		RefreshToken: tokenPair.RefreshToken,
-		ExpiresIn:    tokenPair.ExpiresIn,
-		User:         existingUser,
+		AccessToken:  newPair.AccessToken,
+		RefreshToken: newPair.RefreshToken,
+		ExpiresIn:    newPair.ExpiresIn,
+		User:         user,
 	}, nil
 }

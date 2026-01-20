@@ -10,10 +10,10 @@ import (
 )
 
 type RedisService struct {
-	redisClient *redis.Client
+	RedisClient *redis.Client
 }
 
-func NewRedisConnection(cfg *config.Config) (*redis.Client, error) {
+func NewRedisConnection(cfg *config.Config) (*RedisService, error) {
 	config := New(
 		NewHost(cfg.RedisConfig.Host),
 		NewPassword(cfg.RedisConfig.Password),
@@ -38,5 +38,9 @@ func NewRedisConnection(cfg *config.Config) (*redis.Client, error) {
 	}
 	fmt.Println("Connected to Redis:", pong)
 
-	return rdb, nil
+	redisService := RedisService{
+		RedisClient: rdb,
+	}
+
+	return &redisService, nil
 }

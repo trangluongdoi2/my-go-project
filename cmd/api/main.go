@@ -38,7 +38,7 @@ func main() {
 
 	rdb, _ := redis.NewRedisConnection(cfg)
 
-	limiter := ratelimit.NewRedisLimiter(rdb, config.RATE_LIMITER, time.Minute)
+	limiter := ratelimit.NewRedisLimiter(rdb.RedisClient, config.RATE_LIMITER, time.Minute)
 
 	r := gin.Default()
 
@@ -52,7 +52,7 @@ func main() {
 	)
 
 	userRepo := user.NewRepository(databaseService.DB)
-	authService := auth.NewService(userRepo, jwtService)
+	authService := auth.NewService(userRepo, jwtService, rdb)
 	authHandler := auth.NewHandler(authService)
 	authHandler.RegisterPublicRoutes(r)
 
